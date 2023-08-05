@@ -1,0 +1,60 @@
+{% extends 'main/main.html' %}
+
+{% block content %}
+
+    <div class="search-results-container">
+        {% if searched %}
+            <h1>Results for {{ searched }}</h1>
+            <div class="venue-list">
+                {% for venue in venues %}
+                    <div class="venue-item">
+                        <h3>{{ venue.name }}</h3>
+                        <p>Price: {{ venue.price }}</p>
+                        <img src="{{ venue.image.url }}" alt="{{ venue.name }} Image">
+                        <form id="add-to-cart-form" data-product-id="{{ venue.id }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add">
+                            <button data-product={{product.id}} data-action='add' class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <h1>Hey! You forgot to search something...</h1>
+        {% endif %}
+    </div>
+
+
+
+    <script>
+        const addToCartForms = document.querySelectorAll('#add-to-cart-form');
+        addToCartForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                const action = this.querySelector('input[name="action"]').value;
+                const url = '/update_item/';
+                const data = {
+                    productId: productId,
+                    action: action
+                };
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Add any necessary UI updates after updating the item
+                })
+                .catch(error => console.log(error));
+            });
+        });
+    </script>
+
+{% endblock content %}
+
